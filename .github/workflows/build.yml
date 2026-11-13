@@ -1,6 +1,6 @@
 # Phone-friendly variant: keep AuroraLauncher.zip in the repo root and build straight from it.
 # Save this file in your repo as .github/workflows/build.yml
-# Every successful build also publishes a GitHub Release with the APK attached.
+# Every successful build also publishes a GitHub Release with the APK attached (signed with the same key every time, so it updates in place).
 name: Build APK from zip
 on:
   push:
@@ -27,21 +27,21 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: 8.9
-      - name: Build debug APK
+      - name: Build release APK
         working-directory: ${{ env.PROJECT_DIR }}
-        run: gradle assembleDebug --stacktrace
+        run: gradle assembleRelease --stacktrace
       - name: Rename APK
-        run: cp "$(ls ${{ env.PROJECT_DIR }}/app/build/outputs/apk/debug/*.apk | head -1)" AuroraLauncher-debug.apk
+        run: cp "$(ls ${{ env.PROJECT_DIR }}/app/build/outputs/apk/release/*.apk | head -1)" AuroraLauncher.apk
       - uses: actions/upload-artifact@v4
         with:
-          name: AuroraLauncher-debug-apk
-          path: AuroraLauncher-debug.apk
+          name: AuroraLauncher-apk
+          path: AuroraLauncher.apk
       - name: Publish release
         if: github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: build-${{ github.run_number }}
           name: Aurora Launcher build ${{ github.run_number }}
-          body: Automatic debug build from commit ${{ github.sha }}.
-          files: AuroraLauncher-debug.apk
+          body: Automatic release build from commit ${{ github.sha }}.
+          files: AuroraLauncher.apk
           make_latest: true
